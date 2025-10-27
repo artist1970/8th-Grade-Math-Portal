@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parent Portal | DeepSpace Academy</title>
+
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="scripts/parentPortal.js"></script>
+</head>
+
+<body class="dark">
+  <header>
+    <h1>🌌 DeepSpace Parent Portal</h1>
+    <p class="tagline">Read-only dashboard synced with AI grading system</p>
+  </header>
+
+  <main>
+    <section id="studentSelector" class="card">
+      <h2>Select a Student</h2>
+      <select id="studentList"></select>
+    </section>
+
+    <section id="overview" class="card">
+      <h2>Mission Summary</h2>
+      <div id="summaryTable"></div>
+    </section>
+
+    <section id="chartSection" class="card">
+      <h2>Weekly Mission Progress</h2>
+      <canvas id="parentChart" width="400" height="220"></canvas>
+    </section>
+
+    <section id="insights" class="card">
+      <h2>AI Insights</h2>
+      <p id="insightText">Select a student to view performance insights.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 DeepSpace Academy | AI-Powered Parent Portal</p>
+  </footer>
+</body>
+</html>
