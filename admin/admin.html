@@ -1,67 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard | DeepSpace Academy</title>
+  <meta charset="UTF-8">
+  <title>8th Grade Math Portal – Word Problems</title>
+  <style>
+    :root {
+      --primary: #4aa3ff;
+      --primary-dark: #357acc;
+      --bg: #eef6ff;
+      --white: #ffffff;
+      --text: #333;
+    }
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="styles.css" />
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    .container {
+      background: var(--white);
+      border-radius: 15px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+      padding: 30px 40px;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
 
-  <!-- Dashboard Script -->
-  <script type="module" src="scripts/teacherDashboard.js"></script>
+    .container:hover {
+      transform: scale(1.01);
+    }
+
+    h1 {
+      color: var(--primary-dark);
+      margin-bottom: 10px;
+    }
+
+    .level {
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .question {
+      font-size: 20px;
+      margin-bottom: 20px;
+      min-height: 60px;
+    }
+
+    input[type="number"] {
+      padding: 10px;
+      font-size: 16px;
+      width: 150px;
+      margin-right: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    button {
+      padding: 10px 18px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: white;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: var(--primary-dark);
+    }
+
+    .feedback {
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 18px;
+      min-height: 30px;
+    }
+
+    .navigation {
+      margin-top: 25px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .score {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--primary-dark);
+    }
+
+    .source {
+      margin-top: 30px;
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
 </head>
-<body class="dark">
+<body>
 
-  <header>
-    <h1>🌌 DeepSpace Admin Dashboard</h1>
-    <p class="tagline">Manage students, track missions, and export progress</p>
-  </header>
+  <div class="container">
+    <h1>Word Problems Portal</h1>
+    <div class="level">Level: <span id="levelDisplay">1</span></div>
+    <div class="question" id="questionDisplay">Loading question...</div>
+    <div class="input-section">
+      <input type="number" id="answerInput" placeholder="Your answer">
+      <button id="submitBtn">Submit</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="navigation">
+      <button id="prevBtn">⬅ Previous</button>
+      <button id="nextBtn">Next ➡</button>
+    </div>
+    <div class="score">Score: <span id="scoreDisplay">0</span></div>
+    <div class="source">Data Source: <span id="dataSource">Loading...</span></div>
+  </div>
 
-  <main>
-    <!-- Student Management Panel -->
-    <section id="studentPanel" class="card">
-      <h2>Students</h2>
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <input id="newStudentName" placeholder="New student name" />
-        <button id="addStudentBtn">Add Student</button>
-      </div>
-      <table id="studentTable" class="summary">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>ID</th>
-            <th>Pre-Algebra</th>
-            <th>Algebra</th>
-            <th>Geometry</th>
-            <th>Probability</th>
-            <th>Problem Solving</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Student rows rendered dynamically -->
-        </tbody>
-      </table>
-    </section>
+  <script type="module">
+    import { problemSolving } from './scripts/modules/problemSolving.js';
 
-    <!-- Selected Student Editor -->
-    <section id="selectedPanel" class="card">
-      <!-- Editor & chart rendered dynamically -->
-    </section>
+    let currentIndex = 0;
+    let score = 0;
 
-    <!-- Export Controls -->
-    <section id="exportContainer" class="card">
-      <!-- Export buttons rendered dynamically -->
-    </section>
-  </main>
+    const questionDisplay = document.getElementById('questionDisplay');
+    const answerInput = document.getElementById('answerInput');
+    const feedback = document.getElementById('feedback');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const levelDisplay = document.getElementById('levelDisplay');
+    const dataSource = document.getElementById('dataSource');
 
-  <footer>
-    <p>© 2025 DeepSpace Academy | AI-Powered Admin Dashboard</p>
-  </footer>
+    dataSource.textContent = "modules/problemSolving.js";
 
-</body>
-</html>
+    function showQuestion() {
+      const current = problemSolving[currentIndex];
+      questionDisplay.textContent = current.question;
+      levelDisplay.textContent = Math.floor(currentIndex / 10) + 1;
+      answerInput.value = '';
+      feedback.textContent = '';
+    }
+
+    function checkAnswer() {
+      const current = problemSolving[currentIndex];
+      const userAnswer = parseFloat(answerInput.value);
+      if (userAnswer === current.answer) {
+        feedback.textContent = "✅ Correct!";
+        feed
