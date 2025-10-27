@@ -1,0 +1,76 @@
+# ==========================
+# Cosmic Math Mission .gitignore
+# ==========================
+
+# --- System Files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Logs & Temp Files ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.tmp
+*.swp
+*.bak
+
+# --- Node / Dependencies ---
+node_modules/
+package-lock.json
+yarn.lock
+
+# --- Build & Dist Output ---
+dist/
+build/
+.cache/
+.temp/
+coverage/
+
+# --- Environment Variables ---
+.env
+.env.local
+.env.development
+.env.production
+
+# --- Firebase / Hosting Files ---
+.firebase/
+.firebaserc
+*.runtimeconfig.json
+
+# --- IDE Configs ---
+.vscode/
+.idea/
+*.code-workspace
+
+# --- Backups / Drafts ---
+backup/
+drafts/
+old_versions/
+archive/
+
+# --- Generated Media ---
+assets/generated/
+assets/temp/
+*.psd
+*.ai
+
+# --- Local Data / Test Saves ---
+/data/local/
+*.db
+*.sqlite
+*.json.backup
+localStorage.json
+
+# --- Exports & Compiled PDFs ---
+*.pdf
+*.docx
+*.xlsx
+*.zip
+*.tar.gz
+
+# --- Credentials ---
+/config/secrets/
+credentials.json
+firebase-key.json
