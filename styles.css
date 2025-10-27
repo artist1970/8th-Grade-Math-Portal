@@ -1,0 +1,179 @@
+/* ------------------------
+  Global Styles
+------------------------ */
+body.dark {
+  background-color: #0f2138;
+  color: #f0f4ff;
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+header, footer {
+  text-align: center;
+  padding: 12px 0;
+}
+
+header h1 {
+  margin: 4px 0;
+  font-size: 2em;
+}
+
+header .tagline {
+  font-size: 0.95em;
+  color: #a0b3cc;
+}
+
+footer p {
+  font-size: 0.85em;
+  color: #888;
+}
+
+/* ------------------------
+  Card Containers
+------------------------ */
+.card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px auto;
+  width: 90%;
+  max-width: 900px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* ------------------------
+  Table Styles
+------------------------ */
+.summary {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.summary th, .summary td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  text-align: left;
+}
+
+.summary th {
+  color: #f0f4ff;
+  background: rgba(255,255,255,0.05);
+  font-weight: 600;
+}
+
+.summary td {
+  color: #ddd;
+}
+
+.summary tr:hover td {
+  background-color: rgba(255,255,255,0.08);
+  cursor: default;
+}
+
+/* ------------------------
+  Inputs & Selects
+------------------------ */
+input, select {
+  background: #142847;
+  color: #fff;
+  border: 1px solid #4aa3ff;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.95em;
+  outline: none;
+}
+
+input::placeholder {
+  color: #7a99c0;
+}
+
+input:focus, select:focus {
+  border-color: #ffd23f;
+  box-shadow: 0 0 6px rgba(255, 210, 63, 0.5);
+}
+
+/* ------------------------
+  Buttons
+------------------------ */
+button {
+  background-color: #4aa3ff;
+  border: none;
+  color: #fff;
+  padding: 8px 14px;
+  margin: 4px 4px 0 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: 0.2s ease;
+}
+
+button.primary {
+  background-color: #7ad77b;
+}
+
+button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* ------------------------
+  Export Panel
+------------------------ */
+.export-panel {
+  background: rgba(255,255,255,0.05);
+  padding: 16px;
+  border-radius: 12px;
+  margin-top: 24px;
+  text-align: left;
+}
+
+.export-panel h3 {
+  margin-top: 0;
+}
+
+.export-panel button {
+  margin-top: 8px;
+}
+
+/* ------------------------
+  Chart Section
+------------------------ */
+canvas {
+  background: rgba(0,0,0,0);
+  border-radius: 8px;
+  margin-top: 12px;
+}
+
+/* ------------------------
+  AI Insight Section
+------------------------ */
+#insights {
+  font-size: 0.95em;
+  line-height: 1.4;
+  color: #d0e4ff;
+}
+
+#insightText strong {
+  color: #ffd23f;
+}
+
+/* ------------------------
+  Responsive Design
+------------------------ */
+@media screen and (max-width: 768px) {
+  .card {
+    width: 95%;
+    padding: 12px;
+  }
+
+  input, select, button {
+    width: 100%;
+    margin-bottom: 6px;
+  }
+
+  table.summary th, table.summary td {
+    font-size: 0.85em;
+  }
+}
