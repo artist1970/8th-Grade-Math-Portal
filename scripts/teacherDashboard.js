@@ -1,216 +1,181 @@
 // scripts/teacherDashboard.js
-// Teacher Dashboard with per-week history + Chart.js graph integration
+import { getAllStudentsProgress, saveStudentProgress } from './dataHandler.js';
 
-const STUDENTS_KEY = 'cmm_students_v2';
-const MISSION_KEYS = ['prealgebraScore','algebraScore','geometryScore','probabilityScore','problemSolvingScore'];
-let chart; // Chart.js instance
+// DOM Elements
+const studentsTbody = document.getElementById('studentsTbody');
+const selectedPanel = document.getElementById('selectedPanel');
+const exportContainer = document.getElementById('exportContainer');
+let currentChart;
 
-function saveRaw(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
-function loadRaw(key) { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; }
-
-function loadStudents() { return loadRaw(STUDENTS_KEY) || []; }
-function saveStudents(list) { saveRaw(STUDENTS_KEY, list); }
-
-function uid() { return 's_' + Math.random().toString(36).slice(2,9); }
-
-// --- HISTORY HELPERS ---
-function recordWeeklyProgress(student) {
-  if (!student.weeklyHistory) student.weeklyHistory = [];
-  const currentWeek = getWeekOfYear();
-  const avg = computeAverageValue(student);
-
-  const existing = student.weeklyHistory.find(h => h.week === currentWeek);
-  if (existing) existing.avg = avg;
-  else student.weeklyHistory.push({ week: currentWeek, avg, date: new Date().toISOString() });
-}
-function getWeekOfYear() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  const diff = (now - start) / (1000 * 60 * 60 * 24);
-  return Math.ceil((diff + start.getDay() + 1) / 7);
+// --- Load all students ---
+function loadStudentsList() {
+  const allProgress = getAllStudentsProgress();
+  return Object.keys(allProgress).map(name => ({ name, progress: allProgress[name] }));
 }
 
-// --- TABLE RENDER ---
-function renderStudentsTable() {
-  const tbody = document.getElementById('studentsTbody');
-  tbody.innerHTML = '';
-  const students = loadStudents();
+// --- Render Students Table ---
+export function renderStudentsTable() {
+  const students = loadStudentsList();
+  studentsTbody.innerHTML = '';
+
   if (!students.length) {
-    tbody.innerHTML = `<tr><td colspan="8" class="muted">No students yet. Click "Add Student" to begin.</td></tr>`;
+    studentsTbody.innerHTML = `<tr><td colspan="8" class="muted">No students yet.</td></tr>`;
     return;
   }
 
-  for (const s of students) {
-    const avg = computeAverage(s);
+  students.forEach(student => {
+    const avg = computeOverallAverage(student.progress);
     const tr = document.createElement('tr');
-    tr.classList.add('student-row');
     tr.innerHTML = `
-      <td><strong>${escapeHtml(s.name)}</strong><div class="small muted">${s.id}</div></td>
-      <td>${displayScore(s.prealgebraScore)}</td>
-      <td>${displayScore(s.algebraScore)}</td>
-      <td>${displayScore(s.geometryScore)}</td>
-      <td>${displayScore(s.probabilityScore)}</td>
-      <td>${displayScore(s.problemSolvingScore)}</td>
-      <td>${avg}</td>
-      <td><button data-id="${s.id}" class="editBtn">Edit</button></td>
+      <td><strong>${student.name}</strong></td>
+      <td>${displayScore(student.progress['Pre-Algebra'])}</td>
+      <td>${displayScore(student.progress['Algebra'])}</td>
+      <td>${displayScore(student.progress['Geometry'])}</td>
+      <td>${displayScore(student.progress['Probability'])}</td>
+      <td>${displayScore(student.progress['Problem Solving'])}</td>
+      <td>${avg}%</td>
+      <td><button class="editBtn" data-name="${student.name}">Edit</button></td>
     `;
-    tbody.appendChild(tr);
-  }
+    studentsTbody.appendChild(tr);
+  });
 
-  document.querySelectorAll('.editBtn').forEach(b => b.addEventListener('click', onEditStudent));
+  // Attach edit buttons
+  document.querySelectorAll('.editBtn').forEach(btn => btn.addEventListener('click', onEditStudent));
 }
 
-function displayScore(v) { return v == null ? '—' : `${v}%`; }
-function computeAverage(s) { return computeAverageValue(s) ? Math.round(computeAverageValue(s)) + '%' : '—'; }
-function computeAverageValue(s) {
-  const values = MISSION_KEYS.map(k => s[k]).filter(v => v != null);
-  return values.length ? values.reduce((a,b)=>a+b,0)/values.length : null;
+// --- Display Helpers ---
+function displayScore(subjectProgress) {
+  if (!subjectProgress) return '—';
+  const latest = subjectProgress[subjectProgress.length - 1];
+  if (!latest) return '—';
+  return `${latest.score ?? 0}`;
 }
 
+function computeOverallAverage(progress) {
+  let total = 0, count = 0;
+  Object.values(progress).forEach(chapters => {
+    if (!chapters || !chapters.length) return;
+    chapters.forEach(c => {
+      total += c.score ?? 0;
+      count++;
+    });
+  });
+  return count ? Math.round(total / count) : 0;
+}
+
+// --- Edit Student ---
 function onEditStudent(e) {
-  const id = e.currentTarget.dataset.id;
-  const students = loadStudents();
-  const s = students.find(x => x.id === id);
-  if (!s) return alert('Student not found.');
+  const studentName = e.currentTarget.dataset.name;
+  const students = loadStudentsList();
+  const student = students.find(s => s.name === studentName);
+  if (!student) return;
 
-  showStudentEditor(s);
+  showStudentEditor(student);
 }
 
-// delete student
-function onDeleteStudent(e) {
-  const id = e.currentTarget.dataset.id;
-  if (!confirm('Delete this student permanently?')) return;
-  let students = loadStudents();
-  students = students.filter(x => x.id !== id);
-  saveStudents(students);
-  renderStudentsTable();
-  clearSelectedPanel();
-}
-
-// ---------- Student Editor (with Weekly Chart) ----------
+// --- Student Editor Panel ---
 function showStudentEditor(student) {
-  const panel = document.getElementById('selectedPanel');
-
-  // Build the editor interface
-  panel.innerHTML = `
-    <div style="display:flex;gap:8px;margin-bottom:8px">
-      <input id="stuName" placeholder="Full name" value="${escapeHtml(student.name || '')}" />
-      <input id="stuId" placeholder="ID" value="${escapeHtml(student.id || '')}" disabled />
-    </div>
-
-    <div style="margin-bottom:8px">
-      <label class="small muted">Mission Scores (0–100)</label>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px">
-        <input id="score_pre" placeholder="Pre-Algebra" value="${valOrEmpty(student.prealgebraScore)}" />
-        <input id="score_alg" placeholder="Algebra" value="${valOrEmpty(student.algebraScore)}" />
-        <input id="score_geo" placeholder="Geometry" value="${valOrEmpty(student.geometryScore)}" />
-        <input id="score_prob" placeholder="Probability" value="${valOrEmpty(student.probabilityScore)}" />
-        <input id="score_ps" placeholder="Problem Solving" value="${valOrEmpty(student.problemSolvingScore)}" />
+  selectedPanel.innerHTML = `
+    <h3>Edit ${student.name}</h3>
+    <div style="margin-bottom:8px;">
+      <label>Subject Scores (0–100)</label>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr 1fr; gap:8px; margin-top:4px;">
+        <input id="score_pre" placeholder="Pre-Algebra" value="${getLatestScore(student.progress['Pre-Algebra'])}">
+        <input id="score_alg" placeholder="Algebra" value="${getLatestScore(student.progress['Algebra'])}">
+        <input id="score_geo" placeholder="Geometry" value="${getLatestScore(student.progress['Geometry'])}">
+        <input id="score_prob" placeholder="Probability" value="${getLatestScore(student.progress['Probability'])}">
+        <input id="score_ps" placeholder="Problem Solving" value="${getLatestScore(student.progress['Problem Solving'])}">
       </div>
     </div>
-
-    <div style="display:flex;gap:8px;margin-bottom:12px">
+    <div style="margin-bottom:8px;">
       <button id="saveStudentBtn" class="primary">Save</button>
       <button id="addWeekBtn">Add Weekly Entry</button>
       <button id="cancelEditBtn">Cancel</button>
     </div>
-
-    <div>
-      <canvas id="weeklyChart" width="400" height="200"></canvas>
-    </div>
+    <canvas id="weeklyChart" width="400" height="200"></canvas>
   `;
 
-  // Chart.js integration (create weekly progress chart)
+  // Event listeners
+  document.getElementById('cancelEditBtn').addEventListener('click', () => selectedPanel.innerHTML = '');
+  document.getElementById('saveStudentBtn').addEventListener('click', () => saveStudentEdits(student.name));
+  document.getElementById('addWeekBtn').addEventListener('click', () => addWeeklyEntry(student.name));
+
+  renderStudentChart(student.progress);
+}
+
+// --- Get Latest Score Helper ---
+function getLatestScore(subjectProgress) {
+  if (!subjectProgress || !subjectProgress.length) return '';
+  return subjectProgress[subjectProgress.length - 1].score ?? '';
+}
+
+// --- Save Student Edits ---
+function saveStudentEdits(studentName) {
+  const subjects = ['Pre-Algebra','Algebra','Geometry','Probability','Problem Solving'];
+  subjects.forEach(subject => {
+    const inputId = `score_${subject.slice(0,3).toLowerCase()}`;
+    const score = parseInt(document.getElementById(inputId).value) || 0;
+    saveStudentProgress(studentName, subject, `Manual Entry`, score, 100);
+  });
+
+  alert(`Saved scores for ${studentName}`);
+  renderStudentsTable();
+}
+
+// --- Add Weekly Entry ---
+function addWeeklyEntry(studentName) {
+  const weekLabel = prompt("Enter week label (e.g., Week 5)");
+  if (!weekLabel) return;
+
+  const subjects = ['Pre-Algebra','Algebra','Geometry','Probability','Problem Solving'];
+  subjects.forEach(subject => {
+    const latestScore = getLatestScore(getAllStudentsProgress()[studentName][subject]) || 0;
+    saveStudentProgress(studentName, subject, weekLabel, latestScore, 100);
+  });
+
+  alert(`Weekly entry "${weekLabel}" recorded for ${studentName}`);
+  renderStudentsTable();
+}
+
+// --- Chart Rendering ---
+function renderStudentChart(progress) {
+  const subjects = Object.keys(progress);
+  const weeksSet = new Set();
+  // Gather all weeks
+  subjects.forEach(sub => progress[sub].forEach(c => weeksSet.add(c.name)));
+  const weeks = Array.from(weeksSet).sort();
+
+  const datasets = subjects.map(sub => ({
+    label: sub,
+    data: weeks.map(week => {
+      const entry = progress[sub].find(c => c.name === week);
+      return entry ? entry.score : 0;
+    }),
+    fill: false,
+    borderColor: randomColor(),
+    tension: 0.2
+  }));
+
   const ctx = document.getElementById('weeklyChart').getContext('2d');
-  const weeks = student.weeklyHistory?.map(w => w.week) || [];
-  const averages = student.weeklyHistory?.map(w => w.avg) || [];
+  if (currentChart) currentChart.destroy();
 
-  if (window.currentChart) window.currentChart.destroy();
-
-  window.currentChart = new Chart(ctx, {
+  currentChart = new Chart(ctx, {
     type: 'line',
-    data: {
-      labels: weeks,
-      datasets: [{
-        label: 'Weekly Average (%)',
-        data: averages,
-        borderColor: '#2ab7f5',
-        backgroundColor: 'rgba(42,183,245,0.15)',
-        fill: true,
-        tension: 0.2,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-      }]
-    },
-    options: {
-      scales: {
-        y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.1)' } },
-        x: { grid: { color: 'rgba(255,255,255,0.05)' } }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: { backgroundColor: '#0f2138', borderColor: '#7ad77b', borderWidth: 1 }
-      }
-    }
-  });
-
-  // --- Button handlers ---
-  document.getElementById('saveStudentBtn').addEventListener('click', () => {
-    const students = loadStudents();
-    const idx = students.findIndex(x => x.id === student.id);
-    if (idx === -1) return alert('Student not found.');
-
-    students[idx].name = document.getElementById('stuName').value.trim() || students[idx].name;
-    students[idx].prealgebraScore = parseScore(document.getElementById('score_pre').value);
-    students[idx].algebraScore = parseScore(document.getElementById('score_alg').value);
-    students[idx].geometryScore = parseScore(document.getElementById('score_geo').value);
-    students[idx].probabilityScore = parseScore(document.getElementById('score_prob').value);
-    students[idx].problemSolvingScore = parseScore(document.getElementById('score_ps').value);
-
-    saveStudents(students);
-    renderStudentsTable();
-    showStudentEditor(students[idx]);
-  });
-
-  document.getElementById('cancelEditBtn').addEventListener('click', clearSelectedPanel);
-
-  document.getElementById('addWeekBtn').addEventListener('click', () => {
-    addWeeklyEntry(student.id);
+    data: { labels: weeks, datasets },
+    options: { scales: { y: { beginAtZero:true, max:100 } } }
   });
 }
 
-// ---------- Weekly History Functions ----------
-function addWeeklyEntry(studentId) {
-  const students = loadStudents();
-  const s = students.find(x => x.id === studentId);
-  if (!s) return alert('Student not found.');
-
-  const week = prompt('Enter week label (e.g., Week 5):');
-  if (!week) return;
-
-  const avg = computeAverage(s);
-  if (!s.weeklyHistory) s.weeklyHistory = [];
-  s.weeklyHistory.push({
-    week,
-    avg: Number(avg.replace('%','')) || 0,
-    timestamp: new Date().toISOString()
-  });
-
-  saveStudents(students);
-  alert(`Week "${week}" recorded with average: ${avg}`);
-  showStudentEditor(s);
+// --- Random Color Helper ---
+function randomColor() {
+  return `hsl(${Math.floor(Math.random()*360)},70%,50%)`;
 }
 
-// --- EXPORT FEATURE (Parent/AI School Integration) ---
-
-// Add export button to dashboard UI
+// --- Export Controls ---
 export function renderExportControls() {
-  const exportContainer = document.getElementById('exportContainer');
   if (!exportContainer) return;
-
   exportContainer.innerHTML = `
-    <h3 style="margin-top:16px;">📦 Data Exports</h3>
-    <p class="muted small">Export all student data for parent review or AI analysis.</p>
+    <h3>📦 Export Data</h3>
     <button id="exportSummaryBtn">Export Current Grades (CSV)</button>
     <button id="exportWeeklyBtn">Export Weekly Progress (CSV)</button>
   `;
@@ -219,84 +184,55 @@ export function renderExportControls() {
   document.getElementById('exportWeeklyBtn').addEventListener('click', exportWeeklyCSV);
 }
 
-// Export current mission scores per student
 function exportSummaryCSV() {
-  const students = loadStudents();
-  if (!students.length) return alert('No student data found.');
+  const students = loadStudentsList();
+  if (!students.length) return alert('No students found.');
 
-  const headers = [
-    "Student ID",
-    "Name",
-    "Pre-Algebra",
-    "Algebra",
-    "Geometry",
-    "Probability",
-    "Problem Solving"
-  ];
+  const headers = ["Student","Pre-Algebra","Algebra","Geometry","Probability","Problem Solving"];
+  const rows = students.map(s => {
+    return [
+      s.name,
+      getLatestScore(s.progress['Pre-Algebra']),
+      getLatestScore(s.progress['Algebra']),
+      getLatestScore(s.progress['Geometry']),
+      getLatestScore(s.progress['Probability']),
+      getLatestScore(s.progress['Problem Solving'])
+    ];
+  });
 
-  const rows = students.map(s => [
-    `"${s.id}"`,
-    `"${s.name}"`,
-    s.prealgebraScore ?? "",
-    s.algebraScore ?? "",
-    s.geometryScore ?? "",
-    s.probabilityScore ?? "",
-    s.problemSolvingScore ?? ""
-  ]);
-
-  const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
-  downloadCSV(csv, "Student_Grades_Summary.csv");
+  downloadCSV([headers, ...rows], "Student_Grades_Summary.csv");
 }
 
-// Export all weekly progress (each week × mission)
 function exportWeeklyCSV() {
-  const students = loadStudents();
-  if (!students.length) return alert('No student data found.');
+  const students = loadStudentsList();
+  if (!students.length) return alert('No students found.');
 
-  const headers = [
-    "Student ID",
-    "Name",
-    "Week",
-    "Pre-Algebra",
-    "Algebra",
-    "Geometry",
-    "Probability",
-    "Problem Solving",
-    "Timestamp"
-  ];
-
+  const headers = ["Student","Subject","Week","Score"];
   const rows = [];
 
-  for (const s of students) {
-    if (!s.weeklyHistory || !s.weeklyHistory.length) continue;
-    for (const w of s.weeklyHistory) {
-      rows.push([
-        `"${s.id}"`,
-        `"${s.name}"`,
-        `"${w.week}"`,
-        w.prealgebra ?? "",
-        w.algebra ?? "",
-        w.geometry ?? "",
-        w.probability ?? "",
-        w.problemSolving ?? "",
-        `"${w.timestamp || ""}"`
-      ]);
-    }
-  }
+  students.forEach(s => {
+    Object.entries(s.progress).forEach(([subject, entries]) => {
+      entries.forEach(entry => {
+        rows.push([s.name, subject, entry.name, entry.score]);
+      });
+    });
+  });
 
-  const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
-  downloadCSV(csv, "Student_Weekly_Progress.csv");
+  downloadCSV([headers, ...rows], "Student_Weekly_Progress.csv");
 }
 
-// Universal CSV download handler
-function downloadCSV(csvContent, fileName) {
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.setAttribute("href", url);
-  link.setAttribute("download", fileName);
-  link.style.display = "none";
-  document.body.appendChild(link);
+// --- CSV Download Helper ---
+function downloadCSV(dataArray, filename) {
+  const csv = dataArray.map(r => r.join(",")).join("\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
   link.click();
-  document.body.removeChild(link);
+}
+
+// --- Initialize ---
+export function initTeacherDashboard() {
+  renderStudentsTable();
+  renderExportControls();
 }
