@@ -1,3 +1,4 @@
+/* ===== Body & Typography ===== */
 body.dark {
   background: #0f2138;
   color: #f0f4ff;
@@ -6,45 +7,127 @@ body.dark {
   padding: 0;
 }
 
+h1, h2, h3 {
+  font-weight: 600;
+  margin: 8px 0;
+  color: #4aa3ff;
+}
+
+p, label {
+  color: #f0f4ff;
+  line-height: 1.5;
+}
+
+/* ===== Header & Footer ===== */
 header, footer {
   text-align: center;
-  padding: 12px 0;
+  padding: 16px 0;
+  background: rgba(20, 40, 71, 0.85);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
+footer {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+/* ===== Card Panels ===== */
 .card {
-  background: rgba(255,255,255,0.05);
-  border-radius: 12px;
-  padding: 16px;
-  margin: 16px auto;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 24px;
+  margin: 20px auto;
   width: 90%;
   max-width: 900px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-input {
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.5);
+}
+
+/* ===== Inputs & Selects ===== */
+input, select {
   background: #142847;
-  color: #fff;
+  color: #f0f4ff;
   border: 1px solid #4aa3ff;
-  border-radius: 6px;
-  padding: 6px 10px;
+  border-radius: 8px;
+  padding: 8px 12px;
   margin-right: 8px;
+  font-size: 16px;
+  outline: none;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 
+input:focus, select:focus {
+  border-color: #357acc;
+  box-shadow: 0 0 6px #357acc;
+}
+
+/* ===== Buttons ===== */
 button {
   background-color: #4aa3ff;
   border: none;
   color: #fff;
-  padding: 8px 14px;
-  margin: 4px 4px 0 0;
-  border-radius: 6px;
+  padding: 10px 18px;
+  margin: 6px 4px 0 0;
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 500;
+  font-size: 16px;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 button:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
+  background-color: #357acc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
-canvas {
+/* ===== Question Container & Feedback ===== */
+#questionContainer {
+  margin: 16px 0;
+  font-size: 18px;
+  min-height: 60px;
+}
+
+#feedback {
+  font-weight: 600;
   margin-top: 12px;
+  min-height: 24px;
+}
+
+#scoreDisplay {
+  font-size: 16px;
+  margin-top: 10px;
+  font-weight: 500;
+  color: #4aa3ff;
+}
+
+/* ===== Canvas Chart ===== */
+canvas {
+  margin-top: 20px;
+  border-radius: 12px;
+  background: rgba(20, 40, 71, 0.5);
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 600px) {
+  .card {
+    padding: 16px;
+  }
+
+  input, select {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  button {
+    width: 100%;
+    margin-bottom: 8px;
+  }
 }
