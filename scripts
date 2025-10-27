@@ -1,0 +1,13 @@
+/scripts/
+│
+├── main.js               # Core app logic (page control, module loading)
+├── theme.js              # Theme system and color transitions
+├── tracker.js            # Student progress, grading, and stats
+├── dataHandler.js        # Save/load assignments and results
+├── teacher.js            # Teacher/admin functions (passcode, grading tools)
+└── modules/
+    ├── prealgebra.js
+    ├── algebra.js
+    ├── geometry.js
+    ├── statistics.js
+    └── problemsolving.js
