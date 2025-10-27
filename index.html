@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="styles.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script type="module" src="scripts/portal.js"></script>
+<script type="module" src="scripts/quizModule.js"></script>
 </head>
 <body class="dark">
 
@@ -17,42 +18,36 @@
 </header>
 
 <main>
-  <!-- Student Panel -->
   <section id="studentPanel" class="card">
     <h2>Student</h2>
     <input id="studentName" placeholder="Enter your name" />
-    <label for="subjectSelect">Choose a Chapter:</label>
-    <select id="subjectSelect">
-      <option value="">--Select Chapter--</option>
-      <option value="prealgebraTests">Pre-Algebra</option>
-      <option value="algebraTests">Algebra</option>
-      <option value="geometryTests">Geometry</option>
-      <option value="probabilityTests">Probability</option>
-      <option value="problemSolvingTests">Problem Solving</option>
-    </select>
     <button id="startBtn">Start Portal</button>
   </section>
 
-  <!-- Mission Panel -->
   <section id="missionPanel" class="card" style="display:none;">
-    <h2 id="missionTitle">Chapter Test</h2>
+    <h2 id="missionTitle"></h2>
     <div id="questionContainer"></div>
     <div style="margin-top:12px;">
       <button id="prevQuestionBtn">Previous</button>
       <button id="nextQuestionBtn">Next</button>
       <button id="submitMissionBtn">Submit Mission</button>
     </div>
-    <div id="feedback" style="margin-top:12px;font-weight:bold;"></div>
-    <div id="scoreDisplay" style="margin-top:8px;">Score: 0</div>
   </section>
 
-  <!-- Chart Panel -->
+  <section id="quizPanel" class="card" style="display:none;">
+    <h2>Quick Quizzes</h2>
+    <button class="quickQuizBtn" data-subject="prealgebra">Take Pre-Algebra Quiz</button>
+    <button class="quickQuizBtn" data-subject="algebra">Take Algebra Quiz</button>
+    <button class="quickQuizBtn" data-subject="geometry">Take Geometry Quiz</button>
+    <button class="quickQuizBtn" data-subject="probability">Take Probability Quiz</button>
+    <button class="quickQuizBtn" data-subject="problemSolving">Take Problem Solving Quiz</button>
+  </section>
+
   <section id="chartPanel" class="card" style="display:none;">
     <h2>Weekly Mission Progress</h2>
     <canvas id="progressChart" width="400" height="220"></canvas>
   </section>
 
-  <!-- Export Panel -->
   <section id="exportPanel" class="card">
     <h2>Export Data</h2>
     <button id="exportBtn">Download CSV</button>
@@ -64,84 +59,49 @@
 </footer>
 
 <script type="module">
-  let currentIndex = 0;
-  let currentTest = [];
-  let score = 0;
+  import { createQuizModal, startQuiz } from './scripts/quizModule.js';
+  import { problemSolving } from './scripts/problemSolving.js';
+  import { prealgebra } from './scripts/prealgebra.js';
+  import { algebra } from './scripts/algebra.js';
+  import { geometry } from './scripts/geometry.js';
+  import { probability } from './scripts/probability.js';
+  import { getStudentProgress } from './scripts/tracker.js';
 
-  const studentNameInput = document.getElementById('studentName');
-  const subjectSelect = document.getElementById('subjectSelect');
-  const startBtn = document.getElementById('startBtn');
-  const missionPanel = document.getElementById('missionPanel');
-  const questionContainer = document.getElementById('questionContainer');
-  const prevQuestionBtn = document.getElementById('prevQuestionBtn');
-  const nextQuestionBtn = document.getElementById('nextQuestionBtn');
-  const submitMissionBtn = document.getElementById('submitMissionBtn');
-  const feedbackDiv = document.getElementById('feedback');
-  const scoreDisplay = document.getElementById('scoreDisplay');
+  createQuizModal();
 
-  async function loadTest(subject) {
-    // Dynamically import the selected test module
-    const module = await import(`./scripts/modules/${subject}.js`);
-    return module[subject];
-  }
+  const studentInput = document.getElementById('studentName');
+  const quickButtons = document.querySelectorAll('.quickQuizBtn');
 
-  function showQuestion() {
-    const q = currentTest[currentIndex];
-    if (!q) return;
-    let html = `<p><strong>Q${currentIndex+1}:</strong> ${q.question}</p>`;
-    html += `<div>`;
-    for (const [key, val] of Object.entries(q.options)) {
-      html += `<label><input type="radio" name="answer" value="${key}"> ${key}: ${val}</label><br>`;
-    }
-    html += `</div>`;
-    questionContainer.innerHTML = html;
-    feedbackDiv.textContent = '';
-  }
+  const subjectsMap = {
+    prealgebra,
+    algebra,
+    geometry,
+    probability,
+    problemSolving
+  };
 
-  function checkAnswer() {
-    const selected = document.querySelector('input[name="answer"]:checked');
-    if (!selected) return alert('Please select an answer.');
-    const userAnswer = selected.value;
-    const correctAnswer = currentTest[currentIndex].answer;
-    if (userAnswer === correctAnswer) {
-      feedbackDiv.textContent = '✅ Correct!';
-      feedbackDiv.style.color = 'green';
-      score++;
-    } else {
-      feedbackDiv.textContent = `❌ Incorrect. Correct: ${correctAnswer}`;
-      feedbackDiv.style.color = 'red';
-    }
-    scoreDisplay.textContent = `Score: ${score}`;
-  }
-
-  function nextQuestion() {
-    if (currentIndex < currentTest.length - 1) {
-      currentIndex++;
-      showQuestion();
-    }
-  }
-
-  function prevQuestion() {
-    if (currentIndex > 0) {
-      currentIndex--;
-      showQuestion();
-    }
-  }
-
-  startBtn.addEventListener('click', async () => {
-    if (!studentNameInput.value) return alert('Please enter your name.');
-    if (!subjectSelect.value) return alert('Please select a chapter.');
-    currentTest = await loadTest(subjectSelect.value);
-    currentIndex = 0;
-    score = 0;
-    scoreDisplay.textContent = `Score: ${score}`;
-    missionPanel.style.display = 'block';
-    showQuestion();
+  // Show quiz panel when portal starts
+  document.getElementById('startBtn').addEventListener('click', () => {
+    document.getElementById('quizPanel').style.display = 'block';
   });
 
-  nextQuestionBtn.addEventListener('click', nextQuestion);
-  prevQuestionBtn.addEventListener('click', prevQuestion);
-  submitMissionBtn.addEventListener('click', checkAnswer);
+  quickButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const studentName = studentInput.value.trim();
+      if (!studentName) return alert('Enter your name first!');
+      const subject = btn.dataset.subject;
+      const questionsArray = subjectsMap[subject];
+      startQuiz(studentName, subject, questionsArray);
+    });
+  });
+
+  // Update charts automatically after quiz completion
+  document.addEventListener('quizCompleted', () => {
+    // Assuming you have a renderChart function in portal.js
+    if (typeof renderChart === 'function') {
+      renderChart(getStudentProgress(studentInput.value.trim()));
+    }
+  });
 </script>
 
 </body>
