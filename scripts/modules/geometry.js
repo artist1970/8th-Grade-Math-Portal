@@ -1,4 +1,10 @@
- "questions": [
+// geometry.js
+// 8th Grade Math Portal - Geometry Mission
+// Exporting an array of question objects
+// Each object: { question: "text", answer: number }
+
+export const geometry = [
+  // Level 1: Geometry problems: [
     {
       "id": 1,
       "question": "A triangle has angles measuring 50° and 60°. What is the measure of the third angle?",
