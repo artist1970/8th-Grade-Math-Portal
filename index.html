@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cosmic Math Mission | 8th Grade Portal</title>
+  <link rel="stylesheet" href="styles/main.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at 20% 20%, #0b1a3c, #000);
+      color: #fff;
+      overflow-x: hidden;
+      transition: background 0.5s ease;
+    }
+
+    header {
+      text-align: center;
+      padding: 2rem 1rem;
+      background: rgba(255,255,255,0.05);
+      box-shadow: 0 0 10px rgba(255,255,255,0.1);
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: #8bc6ff;
+      text-shadow: 0 0 15px #3cf;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .nav button {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      padding: 1rem 1.5rem;
+      border-radius: 1rem;
+      color: #fff;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .nav button:hover {
+      background: #3cf;
+      color: #000;
+    }
+
+    .theme-selector {
+      margin-top: 1.5rem;
+    }
+
+    select {
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      border: none;
+      font-size: 1rem;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: rgba(255,255,255,0.05);
+      border-radius: 1.5rem;
+      box-shadow: 0 0 15px rgba(255,255,255,0.1);
+    }
+
+    .tracker {
+      margin-top: 2rem;
+      text-align: center;
+    }
+
+    .teacher-access {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: #f33;
+      border: none;
+      color: #fff;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .teacher-access:hover {
+      background: #ff7b7b;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .modal-content {
+      background: #111;
+      padding: 2rem;
+      border-radius: 1rem;
+      text-align: center;
+      color: #fff;
+      box-shadow: 0 0 20px #3cf;
+    }
+
+    input[type=password] {
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      border: none;
+      margin-top: 1rem;
+      text-align: center;
+    }
+
+    button.close {
+      margin-top: 1rem;
+      background: #3cf;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌌 Cosmic Math Mission</h1>
+    <h3>8th Grade Math Portal</h3>
+    <div class="nav">
+      <button onclick="loadModule('prealgebra')">Pre-Algebra</button>
+      <button onclick="loadModule('algebra')">Algebra</button>
+      <button onclick="loadModule('geometry')">Geometry</button>
+      <button onclick="loadModule('statistics')">Probability & Statistics</button>
+      <button onclick="loadModule('problemsolving')">Problem Solving</button>
+    </div>
+
+    <div class="theme-selector">
+      <label for="theme">Theme:</label>
+      <select id="theme" onchange="changeTheme(this.value)">
+        <option value="deepspace">Deep Space</option>
+        <option value="aurora">Aurora</option>
+        <option value="nebula">Nebula</option>
+        <option value="comet">Comet</option>
+        <option value="darkmatter">Dark Matter</option>
+      </select>
+    </div>
+  </header>
+
+  <main id="content">
+    <h2>Welcome, Cadet!</h2>
+    <p>Select your math mission from above to begin your week’s adventure.</p>
+    <div class="tracker">
+      <h3>🚀 Mission Progress Tracker</h3>
+      <p>Week: <span id="week">1</span> / 42</p>
+      <p>Completed Missions: <span id="missions">0</span></p>
+      <p>Current Grade: <span id="grade">–</span></p>
+    </div>
+  </main>
+
+  <button class="teacher-access" onclick="openModal()">🔒</button>
+
+  <div class="modal" id="adminModal">
+    <div class="modal-content">
+      <h3>Teacher Access</h3>
+      <p>Enter Passcode:</p>
+      <input type="password" id="passcode" maxlength="8" placeholder="••••••••">
+      <br>
+      <button onclick="checkPasscode()">Enter</button>
+      <button class="close" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const themes = {
+      deepspace: "radial-gradient(circle at 20% 20%, #0b1a3c, #000)",
+      aurora: "linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d)",
+      nebula: "linear-gradient(135deg, #33001b, #ff0084)",
+      comet: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
+      darkmatter: "linear-gradient(135deg, #000000, #434343)"
+    };
+
+    function changeTheme(theme) {
+      document.body.style.background = themes[theme] || themes.deepspace;
+    }
+
+    function loadModule(subject) {
+      document.getElementById('content').innerHTML =
+        `<h2>${subject.replace(/([A-Z])/g, ' $1')}</h2>
+        <p>🚀 Loading ${subject} missions... (Module coming soon)</p>`;
+    }
+
+    function openModal() {
+      document.getElementById('adminModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('adminModal').style.display = 'none';
+    }
+
+    function checkPasscode() {
+      const input = document.getElementById('passcode').value;
+      const correct = localStorage.getItem('teacherPasscode') || '1234';
+      if (input === correct) {
+        alert('Access granted. Welcome, Teacher!');
+        closeModal();
+      } else {
+        alert('Incorrect passcode.');
+      }
+    }
+  </script>
+</body>
+</html>
