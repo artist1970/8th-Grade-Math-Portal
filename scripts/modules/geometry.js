@@ -91,4 +91,73 @@ function generateGeometryProblems() {
         } else if (shapeType === 2) {
           const b = rand(4, 10);
           const h = rand(3, 8);
-          text = `Find the area o
+          text = `Find the area of a triangle with base ${b} cm and height ${h} cm.`;
+          answer = 0.5 * b * h;
+        } else {
+          const r = rand(2, 6);
+          text = `Find the area of a circle with radius ${r} cm. (Use π ≈ 3.14)`;
+          answer = 3.14 * r * r;
+        }
+        break;
+      }
+
+      // Perimeter: square or rectangle
+      case "perimeter": {
+        const shapeType = rand(1, 2);
+        if (shapeType === 1) {
+          const side = rand(3, 12);
+          text = `Find the perimeter of a square with side length ${side} cm.`;
+          answer = 4 * side;
+        } else {
+          const l = rand(5, 15);
+          const w = rand(3, 12);
+          text = `Find the perimeter of a rectangle with length ${l} cm and width ${w} cm.`;
+          answer = 2 * (l + w);
+        }
+        break;
+      }
+
+      // Transformations: coordinate translation or reflection
+      case "transform": {
+        const x = rand(1, 5);
+        const y = rand(1, 5);
+        const moveX = rand(-3, 3);
+        const moveY = rand(-3, 3);
+        const reflected = rand(0, 1) === 1;
+
+        if (!reflected) {
+          text = `Translate point (${x}, ${y}) by (${moveX}, ${moveY}). What are the new coordinates? (Enter x + y, e.g. for (4,5) type 9)`;
+          answer = (x + moveX) + (y + moveY);
+        } else {
+          text = `Reflect point (${x}, ${y}) over the x-axis. What is x + y of the new coordinates?`;
+          answer = x + (-y);
+        }
+        break;
+      }
+    }
+
+    list.push({ text, answer: Math.round(answer * 100) / 100 });
+  }
+
+  return list;
+}
+
+function finishMission(score) {
+  const grade = Math.round((score / 10) * 100);
+  const week = parseInt(localStorage.getItem('week') || '1');
+  const missions = parseInt(localStorage.getItem('missions') || '0') + 1;
+
+  saveData('geometryScore', grade);
+  updateProgress({ week, missions, grade: grade + "%" });
+
+  const content = document.getElementById('content');
+  content.innerHTML = `
+    <h2>🏆 Geometry Mission Complete!</h2>
+    <p>Your geometry accuracy: <strong>${grade}%</strong></p>
+    <button onclick="location.reload()">Return to Base</button>
+  `;
+}
+
+function rand(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
