@@ -1,127 +1,101 @@
-🚀 8th Grade Math Portal: “Cosmic Math Mission”
-🌌 Core Overview
+🌌 Cosmic Math Mission: 8th Grade Math Portal
+🚀 An interactive deep-space learning experience for middle school mathematics.
+🧭 Overview
 
-A web-based interactive learning hub designed to guide 8th graders through a 42-week math adventure covering:
+Cosmic Math Mission is a 42-week interactive math portal designed to engage 8th-grade students in a deep-space adventure while mastering core math concepts.
+Each week represents a mission in the galaxy of numbers — students solve math challenges, earn badges, and build mastery across five key domains.
 
-Pre-Algebra
+🎯 Core Features
+📅 Curriculum Structure
 
-Algebra I
+42 Weeks of lessons and practice (Monday–Friday)
 
-Geometry
+Aligned to 8th-grade learning standards
 
-Probability & Statistics
+Progressive learning paths: Pre-Algebra → Algebra → Geometry → Probability & Statistics → Problem Solving
 
-Problem Solving / Logic
+Day	Focus	Example
+Mon	Concept Introduction	Lesson + Guided Examples
+Tue	Practice Missions	Skill-building exercises
+Wed	Independent Challenges	Self-paced work
+Thu	Real-World Problems	Applied math scenarios
+Fri	Review + Badge	Quiz + Mastery Tracker
+🧮 Subjects Covered
 
-Each week represents a “mission” in the deep-space journey — students unlock new challenges, track progress, and earn badges for mastery.
+Pre-Algebra: Integers, expressions, exponents, fractions, equations
 
-🧭 Portal Structure
-1. Weekly Layout (42 Weeks)
+Algebra I: Functions, inequalities, linear equations, polynomials
 
-5-Day System (Mon–Fri)
+Geometry: Angles, area, perimeter, volume, transformations
 
-Mon: Concept Intro + Examples
+Probability & Statistics: Data analysis, probability models, graphs
 
-Tue: Guided Practice
+Problem Solving: Multi-step reasoning, logic puzzles, real-world math
 
-Wed: Independent Practice
+🌠 Portal Features
 
-Thu: Real-World Problem Solving
+✨ Deep-space theme with interactive animations
 
-Fri: Quiz + Review + Mission Badge
+🪐 Color theme options: Aurora Blue, Nebula Purple, Eclipse Black, Comet Orange
 
-Each day features:
+🎧 Audio + Voice Assistant (optional read-aloud of questions)
 
-Animated explanations
+📊 Progress Tracker: Grades, performance graphs, and goal tracking
 
-Auto-graded problems
+👩‍🏫 Teacher Dashboard:
 
-Progress tracking
+Secure admin access (4–8 digit passcode)
 
-Optional “Assist” button for hints and step-by-step guidance
+Assignments, grades, and editable questions
 
-2. Subject Modules
-Module	Focus	Sample Topics
-🪐 Pre-Algebra	Foundations	Integers, fractions, decimals, order of operations, equations
-🌠 Algebra I	Expressions & Equations	Linear equations, inequalities, functions, exponents, factoring
-🛰 Geometry	Shapes & Space	Angles, area, volume, Pythagorean theorem, transformations
-🌙 Probability & Statistics	Data Analysis	Mean/median/mode, probability models, data interpretation
-☄️ Problem Solving	Critical Thinking	Word problems, multi-step reasoning, real-world applications
-🎨 Design Features
+“Ask Teacher” and “Contact Admin” features
 
-Theme: Deep-space interface (planets, galaxies, stars, nebulae as level hubs)
+💻 Technology Stack
 
-Custom Color Themes:
+Frontend: Vanilla HTML, CSS, JavaScript (Wix-compatible)
 
-Default: Aurora Blue
+Data Storage: LocalStorage or optional Firebase integration
 
-Options: Nebula Purple, Lunar Silver, Comet Orange, Eclipse Black
+Optional Libraries:
 
-Background Animation: Slowly rotating stars or orbiting planets
+Chart.js for progress visualization
 
-Soundtrack Toggle: Soft ambient space tones (optional)
+SpeechSynthesis API for voice playback
 
-Accessibility: Read-aloud, dark/light contrast, font size control
+LocalForage for offline data caching
 
-🧮 Interactive Components
-🔹 Grades & Progress Tracking
+🧩 Planned Development Phases
+Phase	Focus	Description
+1	UI & Theme	Deep-space interface, color modes, animations
+2	Lessons & Daily Modules	Dynamic question loading, progress saving
+3	Grade Tracking	Student progress graphs, teacher dashboard
+4	Accessibility	Voice, readability, mobile optimization
+5	Expansion	Multi-grade support & curriculum customization
+📁 Folder Structure
+cosmic-math-mission/
+│
+├── index.html                # Main dashboard
+├── /assets/                  # Images, icons, backgrounds
+├── /styles/                  # Theme and layout CSS
+├── /scripts/                 # Core logic and data handlers
+├── /modules/                 # Weekly lesson modules
+├── LICENSE.txt
+└── README.md
 
-Auto-saves student progress (local or cloud)
+🪙 License
 
-Grade dashboard: displays % mastery by topic and week
+This project is distributed under the Cosmic Math Mission Educational License.
+See the LICENSE
+ file for details.
 
-Teacher dashboard: aggregate view of student performance
+You may use or adapt this portal for non-commercial educational purposes with proper attribution.
 
-🔹 Assistance Features
+📧 Contact & Support
 
-“Ask for Help” button: Students can get hints or step-by-step problem solving
+For permissions, contributions, or integration inquiries:
+Email: [Your Contact Email]
+Website: [Your Academy or Organization Name]
 
-“Explain It!” voice playback: Reads the question aloud with explanations
+🌌 Tagline
 
-Adaptive Mode: Adjusts difficulty based on performance
-
-🔧 Admin / Teacher Tools
-
-Secure 4-digit or 8-digit passcode access
-
-Editable question banks
-
-Import/export grades
-
-Option to switch between Student View and Teacher View
-
-“Contact Admin” and “Announcement Board” modules
-
-💻 Technical Build Plan
-
-We can build it in phases, all vanilla HTML/CSS/JS (Wix-compatible if needed):
-
-Phase 1:
-
-Interface design (main dashboard, color theme selector, deep-space animation)
-
-Phase 2:
-
-Core daily lesson system (load problems dynamically)
-
-Phase 3:
-
-Gradebook + progress tracking
-
-Phase 4:
-
-Teacher/Admin panel + theme customization
-
-Phase 5:
-
-Audio/voice integration and interactive “Assist” AI helper
-
-🧩 Example Interface Mockup (Vanilla HTML/JS)
-
-When you’re ready, I can generate:
-
-The full HTML/CSS/JS code for the main portal interface
-
-A sample “Week 1” module (Pre-Algebra → Integers & Operations)
-
-Optional teacher login dashboard
+“Learning math shouldn’t be boring — it should feel like exploring the universe.”
