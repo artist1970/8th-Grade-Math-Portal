@@ -200,3 +200,103 @@ function addWeeklyEntry(studentId) {
   alert(`Week "${week}" recorded with average: ${avg}`);
   showStudentEditor(s);
 }
+
+// --- EXPORT FEATURE (Parent/AI School Integration) ---
+
+// Add export button to dashboard UI
+export function renderExportControls() {
+  const exportContainer = document.getElementById('exportContainer');
+  if (!exportContainer) return;
+
+  exportContainer.innerHTML = `
+    <h3 style="margin-top:16px;">📦 Data Exports</h3>
+    <p class="muted small">Export all student data for parent review or AI analysis.</p>
+    <button id="exportSummaryBtn">Export Current Grades (CSV)</button>
+    <button id="exportWeeklyBtn">Export Weekly Progress (CSV)</button>
+  `;
+
+  document.getElementById('exportSummaryBtn').addEventListener('click', exportSummaryCSV);
+  document.getElementById('exportWeeklyBtn').addEventListener('click', exportWeeklyCSV);
+}
+
+// Export current mission scores per student
+function exportSummaryCSV() {
+  const students = loadStudents();
+  if (!students.length) return alert('No student data found.');
+
+  const headers = [
+    "Student ID",
+    "Name",
+    "Pre-Algebra",
+    "Algebra",
+    "Geometry",
+    "Probability",
+    "Problem Solving"
+  ];
+
+  const rows = students.map(s => [
+    `"${s.id}"`,
+    `"${s.name}"`,
+    s.prealgebraScore ?? "",
+    s.algebraScore ?? "",
+    s.geometryScore ?? "",
+    s.probabilityScore ?? "",
+    s.problemSolvingScore ?? ""
+  ]);
+
+  const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+  downloadCSV(csv, "Student_Grades_Summary.csv");
+}
+
+// Export all weekly progress (each week × mission)
+function exportWeeklyCSV() {
+  const students = loadStudents();
+  if (!students.length) return alert('No student data found.');
+
+  const headers = [
+    "Student ID",
+    "Name",
+    "Week",
+    "Pre-Algebra",
+    "Algebra",
+    "Geometry",
+    "Probability",
+    "Problem Solving",
+    "Timestamp"
+  ];
+
+  const rows = [];
+
+  for (const s of students) {
+    if (!s.weeklyHistory || !s.weeklyHistory.length) continue;
+    for (const w of s.weeklyHistory) {
+      rows.push([
+        `"${s.id}"`,
+        `"${s.name}"`,
+        `"${w.week}"`,
+        w.prealgebra ?? "",
+        w.algebra ?? "",
+        w.geometry ?? "",
+        w.probability ?? "",
+        w.problemSolving ?? "",
+        `"${w.timestamp || ""}"`
+      ]);
+    }
+  }
+
+  const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+  downloadCSV(csv, "Student_Weekly_Progress.csv");
+}
+
+// Universal CSV download handler
+function downloadCSV(csvContent, fileName) {
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", fileName);
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
