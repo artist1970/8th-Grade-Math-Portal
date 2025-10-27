@@ -73,33 +73,37 @@
         </div>
       </section>
 
-      <aside class="card" id="right">
-        <strong>Selected Student</strong>
-        <div id="selectedPanel" style="margin-top:10px">
-          <div class="muted">No student selected</div>
-        </div>
+     <aside class="card" id="right">
+  <strong>Selected Student</strong>
+  <div id="selectedPanel" style="margin-top:10px">
+    <div class="muted">No student selected</div>
+  </div>
 
-        <hr style="margin:12px 0; border-color: rgba(255,255,255,0.03)">
+  <canvas id="progressChart" width="400" height="260" style="margin-top:20px; background:rgba(255,255,255,0.02); border-radius:12px; padding:10px;"></canvas>
 
-        <div>
-          <strong>Teacher Utilities</strong>
-          <div class="small muted" style="margin-top:6px">Change passcode, download all data, or paste JSON data to import.</div>
+  <hr style="margin:12px 0; border-color: rgba(255,255,255,0.03)">
 
-          <div style="margin-top:8px" class="input-grid">
-            <button id="changePassBtn">Change Passcode</button>
-            <button id="downloadJsonBtn">Download JSON</button>
-          </div>
+  <div>
+    <strong>Teacher Utilities</strong>
+    <div class="small muted" style="margin-top:6px">Change passcode, download all data, or paste JSON data to import.</div>
 
-          <div style="margin-top:12px">
-            <textarea id="jsonImportArea" placeholder="Paste JSON here to import..." rows="6" style="width:100%; border-radius:8px"></textarea>
-            <div style="display:flex; gap:8px; margin-top:8px">
-              <button id="doImportBtn">Import JSON</button>
-              <button id="clearJsonBtn">Clear</button>
-            </div>
-          </div>
-        </div>
-      </aside>
-    </main>
+    <div style="margin-top:8px" class="input-grid">
+      <button id="changePassBtn">Change Passcode</button>
+      <button id="downloadJsonBtn">Download JSON</button>
+    </div>
+
+    <div style="margin-top:12px">
+      <textarea id="jsonImportArea" placeholder="Paste JSON here to import..." rows="6" style="width:100%; border-radius:8px"></textarea>
+      <div style="display:flex; gap:8px; margin-top:8px">
+        <button id="doImportBtn">Import JSON</button>
+        <button id="clearJsonBtn">Clear</button>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <footer>
       <small>Data stored in browser localStorage. Use export to back up student records.</small>
