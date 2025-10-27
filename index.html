@@ -8,8 +8,8 @@
 <link rel="stylesheet" href="styles.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script type="module" src="scripts/portal.js"></script>
-<script type="module" src="scripts/quizModule.js"></script>
 </head>
+
 <body class="dark">
 
 <header>
@@ -18,37 +18,57 @@
 </header>
 
 <main>
+  <!-- Student Login Panel -->
   <section id="studentPanel" class="card">
-    <h2>Student</h2>
+    <h2>Student Login</h2>
     <input id="studentName" placeholder="Enter your name" />
     <button id="startBtn">Start Portal</button>
   </section>
 
+  <!-- Quick Quiz & Chapter Tests -->
+  <section id="quickQuizPanel" class="card" style="display:none;">
+    <h2>Quick Quizzes & Chapter Tests</h2>
+    <div>
+      <button onclick="launchQuickQuiz('Pre-Algebra')">Pre-Algebra Quick Quiz</button>
+      <button onclick="launchChapterTest('Pre-Algebra')">Pre-Algebra Chapter Test</button>
+    </div>
+    <div>
+      <button onclick="launchQuickQuiz('Algebra')">Algebra Quick Quiz</button>
+      <button onclick="launchChapterTest('Algebra')">Algebra Chapter Test</button>
+    </div>
+    <div>
+      <button onclick="launchQuickQuiz('Geometry')">Geometry Quick Quiz</button>
+      <button onclick="launchChapterTest('Geometry')">Geometry Chapter Test</button>
+    </div>
+    <div>
+      <button onclick="launchQuickQuiz('Probability & Stats')">Probability Quick Quiz</button>
+      <button onclick="launchChapterTest('Probability & Stats')">Probability Chapter Test</button>
+    </div>
+    <div>
+      <button onclick="launchQuickQuiz('Problem Solving')">Problem Solving Quick Quiz</button>
+      <button onclick="launchChapterTest('Problem Solving')">Problem Solving Chapter Test</button>
+    </div>
+  </section>
+
+  <!-- Mission Panel -->
   <section id="missionPanel" class="card" style="display:none;">
-    <h2 id="missionTitle"></h2>
+    <h2 id="missionTitle">Mission Title</h2>
     <div id="questionContainer"></div>
     <div style="margin-top:12px;">
-      <button id="prevQuestionBtn">Previous</button>
-      <button id="nextQuestionBtn">Next</button>
+      <button id="prevQuestionBtn">⬅ Previous</button>
+      <button id="nextQuestionBtn">Next ➡</button>
       <button id="submitMissionBtn">Submit Mission</button>
     </div>
   </section>
 
-  <section id="quizPanel" class="card" style="display:none;">
-    <h2>Quick Quizzes</h2>
-    <button class="quickQuizBtn" data-subject="prealgebra">Take Pre-Algebra Quiz</button>
-    <button class="quickQuizBtn" data-subject="algebra">Take Algebra Quiz</button>
-    <button class="quickQuizBtn" data-subject="geometry">Take Geometry Quiz</button>
-    <button class="quickQuizBtn" data-subject="probability">Take Probability Quiz</button>
-    <button class="quickQuizBtn" data-subject="problemSolving">Take Problem Solving Quiz</button>
-  </section>
-
+  <!-- Weekly Chart -->
   <section id="chartPanel" class="card" style="display:none;">
     <h2>Weekly Mission Progress</h2>
     <canvas id="progressChart" width="400" height="220"></canvas>
   </section>
 
-  <section id="exportPanel" class="card">
+  <!-- Data Export -->
+  <section id="exportPanel" class="card" style="display:none;">
     <h2>Export Data</h2>
     <button id="exportBtn">Download CSV</button>
   </section>
@@ -57,52 +77,6 @@
 <footer>
   <p>© 2025 DeepSpace Academy | 8th Grade Math Portal</p>
 </footer>
-
-<script type="module">
-  import { createQuizModal, startQuiz } from './scripts/quizModule.js';
-  import { problemSolving } from './scripts/problemSolving.js';
-  import { prealgebra } from './scripts/prealgebra.js';
-  import { algebra } from './scripts/algebra.js';
-  import { geometry } from './scripts/geometry.js';
-  import { probability } from './scripts/probability.js';
-  import { getStudentProgress } from './scripts/tracker.js';
-
-  createQuizModal();
-
-  const studentInput = document.getElementById('studentName');
-  const quickButtons = document.querySelectorAll('.quickQuizBtn');
-
-  const subjectsMap = {
-    prealgebra,
-    algebra,
-    geometry,
-    probability,
-    problemSolving
-  };
-
-  // Show quiz panel when portal starts
-  document.getElementById('startBtn').addEventListener('click', () => {
-    document.getElementById('quizPanel').style.display = 'block';
-  });
-
-  quickButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const studentName = studentInput.value.trim();
-      if (!studentName) return alert('Enter your name first!');
-      const subject = btn.dataset.subject;
-      const questionsArray = subjectsMap[subject];
-      startQuiz(studentName, subject, questionsArray);
-    });
-  });
-
-  // Update charts automatically after quiz completion
-  document.addEventListener('quizCompleted', () => {
-    // Assuming you have a renderChart function in portal.js
-    if (typeof renderChart === 'function') {
-      renderChart(getStudentProgress(studentInput.value.trim()));
-    }
-  });
-</script>
 
 </body>
 </html>
