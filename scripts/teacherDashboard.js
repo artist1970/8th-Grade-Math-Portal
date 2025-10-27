@@ -1,39 +1,36 @@
 // scripts/teacherDashboard.js
-// Teacher Dashboard module
-// Author: Cosmic Math Mission (adapted for your project)
+// Teacher Dashboard with per-week history + Chart.js graph integration
 
-const STUDENTS_KEY = 'cmm_students_v1'; // single storage key for all students
-
-// mission keys used per student object
+const STUDENTS_KEY = 'cmm_students_v2';
 const MISSION_KEYS = ['prealgebraScore','algebraScore','geometryScore','probabilityScore','problemSolvingScore'];
+let chart; // Chart.js instance
 
-// safe localStorage helpers (fall back)
-function saveRaw(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
+function saveRaw(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+function loadRaw(key) { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; }
+
+function loadStudents() { return loadRaw(STUDENTS_KEY) || []; }
+function saveStudents(list) { saveRaw(STUDENTS_KEY, list); }
+
+function uid() { return 's_' + Math.random().toString(36).slice(2,9); }
+
+// --- HISTORY HELPERS ---
+function recordWeeklyProgress(student) {
+  if (!student.weeklyHistory) student.weeklyHistory = [];
+  const currentWeek = getWeekOfYear();
+  const avg = computeAverageValue(student);
+
+  const existing = student.weeklyHistory.find(h => h.week === currentWeek);
+  if (existing) existing.avg = avg;
+  else student.weeklyHistory.push({ week: currentWeek, avg, date: new Date().toISOString() });
 }
-function loadRaw(key) {
-  const v = localStorage.getItem(key);
-  return v ? JSON.parse(v) : null;
+function getWeekOfYear() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const diff = (now - start) / (1000 * 60 * 60 * 24);
+  return Math.ceil((diff + start.getDay() + 1) / 7);
 }
 
-// CRUD for students
-function loadStudents() {
-  return loadRaw(STUDENTS_KEY) || [];
-}
-function saveStudents(list) {
-  saveRaw(STUDENTS_KEY, list);
-}
-function addStudent(student) {
-  const list = loadStudents();
-  list.push(student);
-  saveStudents(list);
-}
-
-function uid() {
-  return 's_' + Math.random().toString(36).slice(2,9);
-}
-
-// render table
+// --- TABLE RENDER ---
 function renderStudentsTable() {
   const tbody = document.getElementById('studentsTbody');
   tbody.innerHTML = '';
@@ -55,29 +52,19 @@ function renderStudentsTable() {
       <td>${displayScore(s.probabilityScore)}</td>
       <td>${displayScore(s.problemSolvingScore)}</td>
       <td>${avg}</td>
-      <td>
-        <button data-id="${s.id}" class="editBtn">Edit</button>
-        <button data-id="${s.id}" class="delBtn">Delete</button>
-      </td>
+      <td><button data-id="${s.id}" class="editBtn">Edit</button></td>
     `;
     tbody.appendChild(tr);
   }
 
-  // attach events
   document.querySelectorAll('.editBtn').forEach(b => b.addEventListener('click', onEditStudent));
-  document.querySelectorAll('.delBtn').forEach(b => b.addEventListener('click', onDeleteStudent));
 }
 
-function displayScore(v) { return (v === null || v === undefined) ? '—' : `${v}%`; }
-function computeAverage(s) {
-  let sum = 0, count = 0;
-  for (const k of MISSION_KEYS) {
-    if (s[k] !== undefined && s[k] !== null) {
-      sum += Number(s[k]);
-      count++;
-    }
-  }
-  return count ? Math.round(sum / count) + '%' : '—';
+function displayScore(v) { return v == null ? '—' : `${v}%`; }
+function computeAverage(s) { return computeAverageValue(s) ? Math.round(computeAverageValue(s)) + '%' : '—'; }
+function computeAverageValue(s) {
+  const values = MISSION_KEYS.map(k => s[k]).filter(v => v != null);
+  return values.length ? values.reduce((a,b)=>a+b,0)/values.length : null;
 }
 
 function onEditStudent(e) {
@@ -89,6 +76,7 @@ function onEditStudent(e) {
   showStudentEditor(s);
 }
 
+// delete student
 function onDeleteStudent(e) {
   const id = e.currentTarget.dataset.id;
   if (!confirm('Delete this student permanently?')) return;
@@ -99,9 +87,11 @@ function onDeleteStudent(e) {
   clearSelectedPanel();
 }
 
-// selected panel UI
+// ---------- Student Editor (with Weekly Chart) ----------
 function showStudentEditor(student) {
   const panel = document.getElementById('selectedPanel');
+
+  // Build the editor interface
   panel.innerHTML = `
     <div style="display:flex;gap:8px;margin-bottom:8px">
       <input id="stuName" placeholder="Full name" value="${escapeHtml(student.name || '')}" />
@@ -119,12 +109,52 @@ function showStudentEditor(student) {
       </div>
     </div>
 
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;margin-bottom:12px">
       <button id="saveStudentBtn" class="primary">Save</button>
+      <button id="addWeekBtn">Add Weekly Entry</button>
       <button id="cancelEditBtn">Cancel</button>
+    </div>
+
+    <div>
+      <canvas id="weeklyChart" width="400" height="200"></canvas>
     </div>
   `;
 
+  // Chart.js integration (create weekly progress chart)
+  const ctx = document.getElementById('weeklyChart').getContext('2d');
+  const weeks = student.weeklyHistory?.map(w => w.week) || [];
+  const averages = student.weeklyHistory?.map(w => w.avg) || [];
+
+  if (window.currentChart) window.currentChart.destroy();
+
+  window.currentChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: weeks,
+      datasets: [{
+        label: 'Weekly Average (%)',
+        data: averages,
+        borderColor: '#2ab7f5',
+        backgroundColor: 'rgba(42,183,245,0.15)',
+        fill: true,
+        tension: 0.2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.1)' } },
+        x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: '#0f2138', borderColor: '#7ad77b', borderWidth: 1 }
+      }
+    }
+  });
+
+  // --- Button handlers ---
   document.getElementById('saveStudentBtn').addEventListener('click', () => {
     const students = loadStudents();
     const idx = students.findIndex(x => x.id === student.id);
@@ -143,180 +173,30 @@ function showStudentEditor(student) {
   });
 
   document.getElementById('cancelEditBtn').addEventListener('click', clearSelectedPanel);
+
+  document.getElementById('addWeekBtn').addEventListener('click', () => {
+    addWeeklyEntry(student.id);
+  });
 }
 
-function clearSelectedPanel() {
-  const panel = document.getElementById('selectedPanel');
-  panel.innerHTML = `<div class="muted">No student selected</div>`;
-}
+// ---------- Weekly History Functions ----------
+function addWeeklyEntry(studentId) {
+  const students = loadStudents();
+  const s = students.find(x => x.id === studentId);
+  if (!s) return alert('Student not found.');
 
-function valOrEmpty(v) { return (v === null || v === undefined) ? '' : v; }
-function parseScore(v) {
-  if (v === '') return null;
-  const n = Number(v);
-  if (isNaN(n) || n < 0 || n > 100) { alert('Scores must be numbers between 0 and 100.'); return null; }
-  return Math.round(n);
-}
+  const week = prompt('Enter week label (e.g., Week 5):');
+  if (!week) return;
 
-// Add Student flow
-function onAddStudent() {
-  const name = prompt('Enter student full name:');
-  if (!name) return;
-  const s = {
-    id: uid(),
-    name: name.trim(),
-    prealgebraScore: null,
-    algebraScore: null,
-    geometryScore: null,
-    probabilityScore: null,
-    problemSolvingScore: null,
-    createdAt: new Date().toISOString()
-  };
-  addStudent(s);
-  renderStudentsTable();
+  const avg = computeAverage(s);
+  if (!s.weeklyHistory) s.weeklyHistory = [];
+  s.weeklyHistory.push({
+    week,
+    avg: Number(avg.replace('%','')) || 0,
+    timestamp: new Date().toISOString()
+  });
+
+  saveStudents(students);
+  alert(`Week "${week}" recorded with average: ${avg}`);
   showStudentEditor(s);
 }
-
-// Export CSV
-function exportCSV() {
-  const students = loadStudents();
-  if (!students.length) return alert('No students to export.');
-
-  const headers = ['id','name','prealgebraScore','algebraScore','geometryScore','probabilityScore','problemSolvingScore','avg'];
-  const rows = [headers.join(',')];
-
-  for (const s of students) {
-    const avg = computeAverage(s);
-    const row = [
-      csvSafe(s.id),
-      csvSafe(s.name),
-      csvSafe(s.prealgebraScore),
-      csvSafe(s.algebraScore),
-      csvSafe(s.geometryScore),
-      csvSafe(s.probabilityScore),
-      csvSafe(s.problemSolvingScore),
-      csvSafe(avg)
-    ].join(',');
-    rows.push(row);
-  }
-
-  const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `cosmic_math_mission_grades_${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
-function csvSafe(v) {
-  if (v === null || v === undefined) return '';
-  return `"${String(v).replace(/"/g,'""')}"`;
-}
-
-// Import JSON
-function importJSONFromArea() {
-  const text = document.getElementById('jsonImportArea').value.trim();
-  if (!text) return alert('Paste JSON into the text area first.');
-  let parsed;
-  try {
-    parsed = JSON.parse(text);
-  } catch (err) {
-    return alert('Invalid JSON: ' + err.message);
-  }
-
-  if (!Array.isArray(parsed)) {
-    return alert('Expected an array of student objects. Example: [{id:"s_xxxx", name:"Jane", prealgebraScore:82, ...}]');
-  }
-
-  // Basic validation & merge
-  const existing = loadStudents();
-  const merged = [...existing];
-
-  for (const s of parsed) {
-    if (!s.id) s.id = uid();
-    const idx = merged.findIndex(x => x.id === s.id);
-    if (idx === -1) merged.push(s);
-    else merged[idx] = { ...merged[idx], ...s }; // merge updates
-  }
-
-  saveStudents(merged);
-  renderStudentsTable();
-  alert('Import complete. Records merged/added.');
-}
-
-// Download JSON backup
-function downloadJSON() {
-  const students = loadStudents();
-  const blob = new Blob([JSON.stringify(students, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `cmm_students_backup_${new Date().toISOString().slice(0,10)}.json`;
-  document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url);
-}
-
-// Clear all data
-function clearAllData() {
-  if (!confirm('This will permanently delete all student records stored in this browser. Proceed?')) return;
-  saveStudents([]);
-  renderStudentsTable();
-  clearSelectedPanel();
-  alert('All student data removed.');
-}
-
-// change passcode (stored in teacherPasscode)
-function changePasscodeFlow() {
-  const code = prompt('Enter new passcode (4–8 digits):');
-  if (!code) return;
-  if (!/^\d{4,8}$/.test(code)) return alert('Passcode must be 4–8 digits.');
-  localStorage.setItem('teacherPasscode', code);
-  alert('Passcode updated.');
-}
-
-// helpers
-function escapeHtml(s) {
-  if (s === undefined || s === null) return '';
-  return String(s).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-
-// attach UI
-function attachUI() {
-  document.getElementById('addStudentBtn').addEventListener('click', onAddStudent);
-  document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
-  document.getElementById('downloadJsonBtn').addEventListener('click', downloadJSON);
-  document.getElementById('importJsonBtn').addEventListener('click', () => {
-    document.getElementById('jsonImportArea').focus();
-    alert('Paste JSON into the box on the right and click "Import JSON" to merge.');
-  });
-  document.getElementById('doImportBtn').addEventListener('click', importJSONFromArea);
-  document.getElementById('clearJsonBtn').addEventListener('click', () => document.getElementById('jsonImportArea').value = '');
-  document.getElementById('clearAllBtn').addEventListener('click', clearAllData);
-  document.getElementById('changePassBtn').addEventListener('click', changePasscodeFlow);
-  document.getElementById('backHome').addEventListener('click', () => window.location.href = 'index.html');
-}
-
-// initial seed demo data (only if no students exist)
-function seedDemoIfEmpty() {
-  const arr = loadStudents();
-  if (arr && arr.length) return;
-  const demo = [
-    { id: uid(), name: 'Ava T.', prealgebraScore: 88, algebraScore: 90, geometryScore: 85, probabilityScore:78, problemSolvingScore:92 },
-    { id: uid(), name: 'Miles R.', prealgebraScore: 74, algebraScore: 79, geometryScore: 72, probabilityScore:70, problemSolvingScore:68 },
-    { id: uid(), name: 'Sofia K.', prealgebraScore: 95, algebraScore: 96, geometryScore: 94, probabilityScore:92, problemSolvingScore:98 }
-  ];
-  saveStudents(demo);
-}
-
-// bootstrap
-function initDashboard() {
-  seedDemoIfEmpty();
-  attachUI();
-  renderStudentsTable();
-  clearSelectedPanel();
-}
-
-document.addEventListener('DOMContentLoaded', initDashboard);
