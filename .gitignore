@@ -62,6 +62,8 @@ assets/temp/
 *.sqlite
 *.json.backup
 localStorage.json
+studentProgress.json
+tracker.json
 
 # --- Exports & Compiled PDFs ---
 *.pdf
@@ -74,3 +76,10 @@ localStorage.json
 /config/secrets/
 credentials.json
 firebase-key.json
+
+# --- Wix / Portal Local Exports ---
+wix-export/
+portal-backups/
+
+# --- Test Modules (if dynamically generated) ---
+/scripts/modules/*.js
