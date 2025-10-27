@@ -7,32 +7,47 @@
 
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script type="module" src="scripts/parentPortal.js"></script>
 </head>
 
 <body class="dark">
   <header>
     <h1>🌌 DeepSpace Parent Portal</h1>
-    <p class="tagline">Read-only dashboard synced with AI grading system</p>
+    <p class="tagline">Full access to your child’s grades and progress</p>
   </header>
 
   <main>
+    <!-- Student Selector -->
     <section id="studentSelector" class="card">
       <h2>Select a Student</h2>
-      <select id="studentList"></select>
+      <select id="studentList">
+        <option value="">--Select Student--</option>
+      </select>
     </section>
 
-    <section id="overview" class="card">
+    <!-- Overview Table -->
+    <section id="overview" class="card" style="display:none;">
       <h2>Mission Summary</h2>
-      <div id="summaryTable"></div>
+      <table id="summaryTable" style="width:100%; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="border-bottom:1px solid #4aa3ff; padding:6px;">Subject</th>
+            <th style="border-bottom:1px solid #4aa3ff; padding:6px;">Chapter/Test</th>
+            <th style="border-bottom:1px solid #4aa3ff; padding:6px;">Score</th>
+            <th style="border-bottom:1px solid #4aa3ff; padding:6px;">Percentage</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </section>
 
-    <section id="chartSection" class="card">
+    <!-- Progress Chart -->
+    <section id="chartSection" class="card" style="display:none;">
       <h2>Weekly Mission Progress</h2>
       <canvas id="parentChart" width="400" height="220"></canvas>
     </section>
 
-    <section id="insights" class="card">
+    <!-- AI Insights -->
+    <section id="insights" class="card" style="display:none;">
       <h2>AI Insights</h2>
       <p id="insightText">Select a student to view performance insights.</p>
     </section>
@@ -41,5 +56,106 @@
   <footer>
     <p>© 2025 DeepSpace Academy | AI-Powered Parent Portal</p>
   </footer>
+
+  <script type="module">
+    import { getStudentProgress } from './scripts/tracker.js';
+
+    const studentList = document.getElementById('studentList');
+    const summaryTableBody = document.querySelector('#summaryTable tbody');
+    const overviewSection = document.getElementById('overview');
+    const chartSection = document.getElementById('chartSection');
+    const insightsSection = document.getElementById('insights');
+    const insightText = document.getElementById('insightText');
+    const parentChartCanvas = document.getElementById('parentChart');
+    let parentChart;
+
+    // Load students from tracker.js
+    const students = getStudentProgress(); // returns array of {name, progress: {...}}
+
+    students.forEach(student => {
+      const option = document.createElement('option');
+      option.value = student.name;
+      option.textContent = student.name;
+      studentList.appendChild(option);
+    });
+
+    studentList.addEventListener('change', (e) => {
+      const selectedName = e.target.value;
+      if (!selectedName) return;
+
+      const studentData = students.find(s => s.name === selectedName);
+      if (!studentData) return;
+
+      renderSummaryTable(studentData.progress);
+      renderChart(studentData.progress);
+      renderInsights(studentData.progress);
+    });
+
+    function renderSummaryTable(progress) {
+      summaryTableBody.innerHTML = '';
+      for (const [subject, chapters] of Object.entries(progress)) {
+        chapters.forEach(chap => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td style="padding:6px; border-bottom:1px solid #4aa3ff;">${subject}</td>
+            <td style="padding:6px; border-bottom:1px solid #4aa3ff;">${chap.name}</td>
+            <td style="padding:6px; border-bottom:1px solid #4aa3ff;">${chap.score}</td>
+            <td style="padding:6px; border-bottom:1px solid #4aa3ff;">${chap.percentage}%</td>
+          `;
+          summaryTableBody.appendChild(row);
+        });
+      }
+      overviewSection.style.display = 'block';
+    }
+
+    function renderChart(progress) {
+      const subjects = Object.keys(progress);
+      const weeklyScores = subjects.map(sub => {
+        const chapters = progress[sub];
+        return Math.round(chapters.reduce((acc,c) => acc+c.percentage,0)/chapters.length);
+      });
+
+      if (parentChart) parentChart.destroy();
+
+      parentChart = new Chart(parentChartCanvas, {
+        type: 'bar',
+        data: {
+          labels: subjects,
+          datasets: [{
+            label: 'Average % per Subject',
+            data: weeklyScores,
+            backgroundColor: '#4aa3ff'
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100
+            }
+          }
+        }
+      });
+
+      chartSection.style.display = 'block';
+    }
+
+    function renderInsights(progress) {
+      let insights = '';
+      for (const [subject, chapters] of Object.entries(progress)) {
+        const avg = Math.round(chapters.reduce((acc,c)=>acc+c.percentage,0)/chapters.length);
+        if (avg < 60) {
+          insights += `⚠️ ${subject}: Student may need extra help. Avg: ${avg}%<br>`;
+        } else if (avg >= 60 && avg < 85) {
+          insights += `✅ ${subject}: Good progress. Avg: ${avg}%<br>`;
+        } else {
+          insights += `🌟 ${subject}: Excellent work! Avg: ${avg}%<br>`;
+        }
+      }
+      insightText.innerHTML = insights;
+      insightsSection.style.display = 'block';
+    }
+  </script>
 </body>
 </html>
