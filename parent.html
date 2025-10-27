@@ -1,161 +1,98 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Parent Portal | DeepSpace Academy</title>
+<script type="module">
+import { getAllStudentsProgress } from './scripts/dataHandler.js';
 
-  <link rel="stylesheet" href="styles.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
+const studentList = document.getElementById('studentList');
+const summaryTableBody = document.querySelector('#summaryTable tbody');
+const overviewSection = document.getElementById('overview');
+const chartSection = document.getElementById('chartSection');
+const insightsSection = document.getElementById('insights');
+const insightText = document.getElementById('insightText');
+const parentChartCanvas = document.getElementById('parentChart');
+let parentChart;
 
-<body class="dark">
-  <header>
-    <h1>🌌 DeepSpace Parent Portal</h1>
-    <p class="tagline">Full access to your child’s grades and progress</p>
-  </header>
+// Load all students from localStorage
+const allStudents = getAllStudentsProgress();
+const studentNames = Object.keys(allStudents);
 
-  <main>
-    <!-- Student Selector -->
-    <section id="studentSelector" class="card">
-      <h2>Select a Student</h2>
-      <select id="studentList">
-        <option value="">--Select Student--</option>
-      </select>
-    </section>
+studentNames.forEach(name => {
+  const option = document.createElement('option');
+  option.value = name;
+  option.textContent = name;
+  studentList.appendChild(option);
+});
 
-    <!-- Overview Table -->
-    <section id="overview" class="card" style="display:none;">
-      <h2>Mission Summary</h2>
-      <table id="summaryTable" style="width:100%; border-collapse: collapse;">
-        <thead>
-          <tr>
-            <th style="border-bottom:1px solid #4aa3ff; padding:6px;">Subject</th>
-            <th style="border-bottom:1px solid #4aa3ff; padding:6px;">Chapter/Test</th>
-            <th style="border-bottom:1px solid #4aa3ff; padding:6px;">Score</th>
-            <th style="border-bottom:1px solid #4aa3ff; padding:6px;">Percentage</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
+studentList.addEventListener('change', (e) => {
+  const selectedName = e.target.value;
+  if (!selectedName) return;
 
-    <!-- Progress Chart -->
-    <section id="chartSection" class="card" style="display:none;">
-      <h2>Weekly Mission Progress</h2>
-      <canvas id="parentChart" width="400" height="220"></canvas>
-    </section>
+  const progress = allStudents[selectedName] || {};
+  renderSummaryTable(progress);
+  renderChart(progress);
+  renderInsights(progress);
+});
 
-    <!-- AI Insights -->
-    <section id="insights" class="card" style="display:none;">
-      <h2>AI Insights</h2>
-      <p id="insightText">Select a student to view performance insights.</p>
-    </section>
-  </main>
-
-  <footer>
-    <p>© 2025 DeepSpace Academy | AI-Powered Parent Portal</p>
-  </footer>
-
-  <script type="module">
-    import { getStudentProgress } from './scripts/tracker.js';
-
-    const studentList = document.getElementById('studentList');
-    const summaryTableBody = document.querySelector('#summaryTable tbody');
-    const overviewSection = document.getElementById('overview');
-    const chartSection = document.getElementById('chartSection');
-    const insightsSection = document.getElementById('insights');
-    const insightText = document.getElementById('insightText');
-    const parentChartCanvas = document.getElementById('parentChart');
-    let parentChart;
-
-    // Load students from tracker.js
-    const students = getStudentProgress(); // returns array of {name, progress: {...}}
-
-    students.forEach(student => {
-      const option = document.createElement('option');
-      option.value = student.name;
-      option.textContent = student.name;
-      studentList.appendChild(option);
+function renderSummaryTable(progress) {
+  summaryTableBody.innerHTML = '';
+  for (const [subject, chapters] of Object.entries(progress)) {
+    chapters.forEach(chap => {
+      const percentage = chap.total ? Math.round((chap.score / chap.total) * 100) : 0;
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td style="padding:6px; border-bottom:1px solid #4aa3ff;">${subject}</td>
+        <td style="padding:6px; border-bottom:1px solid #4aa3ff;">${chap.name}</td>
+        <td style="padding:6px; border-bottom:1px solid #4aa3ff;">${chap.score}</td>
+        <td style="padding:6px; border-bottom:1px solid #4aa3ff;">${percentage}%</td>
+      `;
+      summaryTableBody.appendChild(row);
     });
+  }
+  overviewSection.style.display = 'block';
+}
 
-    studentList.addEventListener('change', (e) => {
-      const selectedName = e.target.value;
-      if (!selectedName) return;
+function renderChart(progress) {
+  const subjects = Object.keys(progress);
+  const weeklyScores = subjects.map(sub => {
+    const chapters = progress[sub];
+    return chapters.length
+      ? Math.round(chapters.reduce((acc,c) => acc + (c.total ? (c.score / c.total) * 100 : 0), 0)/chapters.length)
+      : 0;
+  });
 
-      const studentData = students.find(s => s.name === selectedName);
-      if (!studentData) return;
+  if (parentChart) parentChart.destroy();
 
-      renderSummaryTable(studentData.progress);
-      renderChart(studentData.progress);
-      renderInsights(studentData.progress);
-    });
-
-    function renderSummaryTable(progress) {
-      summaryTableBody.innerHTML = '';
-      for (const [subject, chapters] of Object.entries(progress)) {
-        chapters.forEach(chap => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td style="padding:6px; border-bottom:1px solid #4aa3ff;">${subject}</td>
-            <td style="padding:6px; border-bottom:1px solid #4aa3ff;">${chap.name}</td>
-            <td style="padding:6px; border-bottom:1px solid #4aa3ff;">${chap.score}</td>
-            <td style="padding:6px; border-bottom:1px solid #4aa3ff;">${chap.percentage}%</td>
-          `;
-          summaryTableBody.appendChild(row);
-        });
+  parentChart = new Chart(parentChartCanvas, {
+    type: 'bar',
+    data: {
+      labels: subjects,
+      datasets: [{
+        label: 'Average % per Subject',
+        data: weeklyScores,
+        backgroundColor: '#4aa3ff'
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true, max: 100 }
       }
-      overviewSection.style.display = 'block';
     }
+  });
 
-    function renderChart(progress) {
-      const subjects = Object.keys(progress);
-      const weeklyScores = subjects.map(sub => {
-        const chapters = progress[sub];
-        return Math.round(chapters.reduce((acc,c) => acc+c.percentage,0)/chapters.length);
-      });
+  chartSection.style.display = 'block';
+}
 
-      if (parentChart) parentChart.destroy();
+function renderInsights(progress) {
+  let insights = '';
+  for (const [subject, chapters] of Object.entries(progress)) {
+    const avg = chapters.length
+      ? Math.round(chapters.reduce((acc,c)=>acc + (c.total ? (c.score / c.total) * 100 : 0),0)/chapters.length)
+      : 0;
 
-      parentChart = new Chart(parentChartCanvas, {
-        type: 'bar',
-        data: {
-          labels: subjects,
-          datasets: [{
-            label: 'Average % per Subject',
-            data: weeklyScores,
-            backgroundColor: '#4aa3ff'
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 100
-            }
-          }
-        }
-      });
-
-      chartSection.style.display = 'block';
-    }
-
-    function renderInsights(progress) {
-      let insights = '';
-      for (const [subject, chapters] of Object.entries(progress)) {
-        const avg = Math.round(chapters.reduce((acc,c)=>acc+c.percentage,0)/chapters.length);
-        if (avg < 60) {
-          insights += `⚠️ ${subject}: Student may need extra help. Avg: ${avg}%<br>`;
-        } else if (avg >= 60 && avg < 85) {
-          insights += `✅ ${subject}: Good progress. Avg: ${avg}%<br>`;
-        } else {
-          insights += `🌟 ${subject}: Excellent work! Avg: ${avg}%<br>`;
-        }
-      }
-      insightText.innerHTML = insights;
-      insightsSection.style.display = 'block';
-    }
-  </script>
-</body>
-</html>
+    if (avg < 60) insights += `⚠️ ${subject}: Student may need extra help. Avg: ${avg}%<br>`;
+    else if (avg < 85) insights += `✅ ${subject}: Good progress. Avg: ${avg}%<br>`;
+    else insights += `🌟 ${subject}: Excellent work! Avg: ${avg}%<br>`;
+  }
+  insightText.innerHTML = insights;
+  insightsSection.style.display = 'block';
+}
+</script>
