@@ -2,154 +2,85 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>8th Grade Math Portal – Word Problems</title>
+  <title>8th Grade Math Portal – Admin Access</title>
+  <link rel="stylesheet" href="styles.css">
   <style>
-    :root {
-      --primary: #4aa3ff;
-      --primary-dark: #357acc;
-      --bg: #eef6ff;
-      --white: #ffffff;
-      --text: #333;
-    }
-
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: var(--bg);
-      display: flex;
-      flex-direction: column;
+    /* Modal Overlay */
+    #adminModal {
+      display: none;
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
+      z-index: 1000;
     }
-
-    .container {
-      background: var(--white);
-      border-radius: 15px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-      padding: 30px 40px;
-      max-width: 600px;
-      width: 100%;
+    #adminModal .modal-content {
+      background: #f0f8ff;
+      padding: 30px;
+      border-radius: 12px;
+      width: 320px;
       text-align: center;
-      transition: transform 0.2s ease;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
     }
-
-    .container:hover {
-      transform: scale(1.01);
+    #adminModal input {
+      width: 180px;
+      padding: 8px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      border: 1px solid #4aa3ff;
     }
-
-    h1 {
-      color: var(--primary-dark);
-      margin-bottom: 10px;
-    }
-
-    .level {
-      font-weight: 600;
-      margin-bottom: 20px;
-    }
-
-    .question {
-      font-size: 20px;
-      margin-bottom: 20px;
-      min-height: 60px;
-    }
-
-    input[type="number"] {
-      padding: 10px;
-      font-size: 16px;
-      width: 150px;
-      margin-right: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-
-    button {
-      padding: 10px 18px;
-      font-size: 16px;
-      cursor: pointer;
+    #adminModal button {
+      margin: 4px;
+      padding: 8px 14px;
+      border-radius: 6px;
       border: none;
-      border-radius: 8px;
-      background: var(--primary);
+      background-color: #4aa3ff;
       color: white;
-      transition: 0.2s;
+      cursor: pointer;
     }
-
-    button:hover {
-      background: var(--primary-dark);
+    #adminModal button:hover {
+      background-color: #357acc;
     }
-
-    .feedback {
-      margin-top: 15px;
+    #adminModal .feedback {
       font-weight: bold;
-      font-size: 18px;
-      min-height: 30px;
-    }
-
-    .navigation {
-      margin-top: 25px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .score {
-      margin-top: 20px;
-      font-size: 18px;
-      font-weight: bold;
-      color: var(--primary-dark);
-    }
-
-    .source {
-      margin-top: 30px;
-      font-size: 14px;
-      color: #666;
+      margin-top: 10px;
+      min-height: 24px;
     }
   </style>
 </head>
-<body>
+<body class="dark">
 
-  <div class="container">
-    <h1>Word Problems Portal</h1>
-    <div class="level">Level: <span id="levelDisplay">1</span></div>
-    <div class="question" id="questionDisplay">Loading question...</div>
-    <div class="input-section">
-      <input type="number" id="answerInput" placeholder="Your answer">
-      <button id="submitBtn">Submit</button>
+  <header>
+    <h1>🌌 8th Grade Math Portal – Admin Access</h1>
+    <p class="tagline">Teacher-only controls</p>
+    <button onclick="openAdminModal()">🔐 Open Admin Modal</button>
+  </header>
+
+  <main>
+    <section>
+      <p>Use the admin modal to access teacher settings and edit student data.</p>
+    </section>
+  </main>
+
+  <!-- Admin Modal -->
+  <div id="adminModal">
+    <div class="modal-content">
+      <h2>Teacher Passcode</h2>
+      <input type="password" id="passcode" placeholder="Enter passcode">
+      <button onclick="togglePasscodeVisibility()">👁 Toggle</button><br>
+      <button onclick="checkPasscode()">Submit</button>
+      <button onclick="closeAdminModal()">Cancel</button>
+      <div class="feedback"></div>
+      <hr style="margin:12px 0;">
+      <button onclick="changePasscode()">Change Passcode</button>
     </div>
-    <div class="feedback" id="feedback"></div>
-    <div class="navigation">
-      <button id="prevBtn">⬅ Previous</button>
-      <button id="nextBtn">Next ➡</button>
-    </div>
-    <div class="score">Score: <span id="scoreDisplay">0</span></div>
-    <div class="source">Data Source: <span id="dataSource">Loading...</span></div>
   </div>
 
   <script type="module">
-    import { problemSolving } from './scripts/modules/problemSolving.js';
+    import { openAdminModal, closeAdminModal, checkPasscode, changePasscode, togglePasscodeVisibility } 
+      from './scripts/teacher.js';
+  </script>
 
-    let currentIndex = 0;
-    let score = 0;
-
-    const questionDisplay = document.getElementById('questionDisplay');
-    const answerInput = document.getElementById('answerInput');
-    const feedback = document.getElementById('feedback');
-    const scoreDisplay = document.getElementById('scoreDisplay');
-    const levelDisplay = document.getElementById('levelDisplay');
-    const dataSource = document.getElementById('dataSource');
-
-    dataSource.textContent = "modules/problemSolving.js";
-
-    function showQuestion() {
-      const current = problemSolving[currentIndex];
-      questionDisplay.textContent = current.question;
-      levelDisplay.textContent = Math.floor(currentIndex / 10) + 1;
-      answerInput.value = '';
-      feedback.textContent = '';
-    }
-
-    function checkAnswer() {
-      const current = problemSolving[currentIndex];
-      const userAnswer = parseFloat(answerInput.value);
-      if (userAnswer === current.answer) {
-        feedback.textContent = "✅ Correct!";
-        feed
+</body>
+</html>
