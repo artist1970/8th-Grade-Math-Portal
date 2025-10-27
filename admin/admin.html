@@ -1,117 +1,67 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Teacher Dashboard — Cosmic Math Mission</title>
-  <link rel="stylesheet" href="styles/main.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard | DeepSpace Academy</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="module" src="scripts/teacherDashboard.js"></script>
-  <style>
-    /* Minimal, dashboard-specific styles (keeps project theme) */
-    body { font-family: Poppins, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: #071029; color: #e6f0ff; margin: 0; padding: 24px; }
-    header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-    h1 { margin: 0; color:#8bc6ff; text-shadow: 0 0 10px rgba(56,190,255,.12); }
-    .wrap { max-width:1100px; margin: 24px auto; }
-    .controls { display:flex; gap:10px; flex-wrap:wrap; margin-bottom: 12px; }
-    button { background:#0f2138; color:#dbeeff; border: none; padding: 8px 12px; border-radius:8px; cursor:pointer; box-shadow: 0 2px 6px rgba(0,0,0,.4); }
-    button.primary { background: linear-gradient(90deg,#2ab7f5,#7ad77b); color:#002; font-weight:600; }
-    input, select, textarea { padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); color:inherit; }
-    .grid { display:grid; grid-template-columns: 1fr 420px; gap:18px; align-items:start; }
-    .card { background: rgba(255,255,255,0.02); padding:14px; border-radius:12px; box-shadow: 0 6px 18px rgba(0,0,0,0.6); }
-    table { width:100%; border-collapse:collapse; color:inherit; }
-    th, td { padding:10px 8px; border-bottom:1px solid rgba(255,255,255,0.03); text-align:left; font-size:0.95rem; }
-    th { font-weight:700; color:#cdeeff; }
-    .small { font-size:0.9rem; color:#bcd; }
-    .student-row:hover { background: rgba(255,255,255,0.01); }
-    .muted { color:#8aa; font-size:0.9rem; }
-    .input-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    footer { margin-top:24px; text-align:center; color:#9fb6d6; }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <header>
-      <div>
-        <h1>Teacher Dashboard</h1>
-        <div class="small">Cosmic Math Mission — Manage students, grades, and exports</div>
-      </div>
-      <div>
-        <button id="backHome">← Back to Portal</button>
-      </div>
-    </header>
 
-    <main class="grid">
-      <section class="card" id="left">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div>
-            <strong>Students & Grades</strong>
-            <div class="muted">Add students, edit scores, export reports.</div>
-          </div>
-          <div class="controls">
-            <button id="addStudentBtn" class="primary">+ Add Student</button>
-            <button id="exportCsvBtn">Export CSV</button>
-            <button id="importJsonBtn">Import JSON</button>
-            <button id="clearAllBtn">Clear All</button>
-          </div>
-        </div>
-
-        <div style="overflow:auto; max-height:560px">
-          <table id="studentsTable" aria-live="polite">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th class="small">PreAlg</th>
-                <th class="small">Alg</th>
-                <th class="small">Geom</th>
-                <th class="small">Prob</th>
-                <th class="small">ProblemSolv</th>
-                <th class="small">Avg</th>
-                <th class="small">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="studentsTbody"></tbody>
-          </table>
-        </div>
-      </section>
-
-     <aside class="card" id="right">
-  <strong>Selected Student</strong>
-  <div id="selectedPanel" style="margin-top:10px">
-    <div class="muted">No student selected</div>
-  </div>
-
-  <canvas id="progressChart" width="400" height="260" style="margin-top:20px; background:rgba(255,255,255,0.02); border-radius:12px; padding:10px;"></canvas>
-
-  <hr style="margin:12px 0; border-color: rgba(255,255,255,0.03)">
-
-  <div>
-    <strong>Teacher Utilities</strong>
-    <div class="small muted" style="margin-top:6px">Change passcode, download all data, or paste JSON data to import.</div>
-
-    <div style="margin-top:8px" class="input-grid">
-      <button id="changePassBtn">Change Passcode</button>
-      <button id="downloadJsonBtn">Download JSON</button>
-    </div>
-
-    <div style="margin-top:12px">
-      <textarea id="jsonImportArea" placeholder="Paste JSON here to import..." rows="6" style="width:100%; border-radius:8px"></textarea>
-      <div style="display:flex; gap:8px; margin-top:8px">
-        <button id="doImportBtn">Import JSON</button>
-        <button id="clearJsonBtn">Clear</button>
-      </div>
-    </div>
-  </div>
-</aside>
-
-<!-- Chart.js Library -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <footer>
-      <small>Data stored in browser localStorage. Use export to back up student records.</small>
-    </footer>
-  </div>
-
+  <!-- Dashboard Script -->
   <script type="module" src="scripts/teacherDashboard.js"></script>
+</head>
+<body class="dark">
+
+  <header>
+    <h1>🌌 DeepSpace Admin Dashboard</h1>
+    <p class="tagline">Manage students, track missions, and export progress</p>
+  </header>
+
+  <main>
+    <!-- Student Management Panel -->
+    <section id="studentPanel" class="card">
+      <h2>Students</h2>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <input id="newStudentName" placeholder="New student name" />
+        <button id="addStudentBtn">Add Student</button>
+      </div>
+      <table id="studentTable" class="summary">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>ID</th>
+            <th>Pre-Algebra</th>
+            <th>Algebra</th>
+            <th>Geometry</th>
+            <th>Probability</th>
+            <th>Problem Solving</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Student rows rendered dynamically -->
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Selected Student Editor -->
+    <section id="selectedPanel" class="card">
+      <!-- Editor & chart rendered dynamically -->
+    </section>
+
+    <!-- Export Controls -->
+    <section id="exportContainer" class="card">
+      <!-- Export buttons rendered dynamically -->
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 DeepSpace Academy | AI-Powered Admin Dashboard</p>
+  </footer>
+
 </body>
 </html>
